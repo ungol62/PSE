@@ -1,5 +1,5 @@
 #include "pse.h"
-
+#include "synchronisation.h"
 //Déclaration des constantes
 #define TRUE 1
 #define FALSE 0
@@ -13,6 +13,7 @@ void listen_socket(int port, int nb_players);
 
 //Déclaration des variables globales
 DataSpec workers[MAX_PLAYERS]; //Tableau de structures contenant des données spécifiques à nos workers (voir module dataspec.h)
+pthread_t *consommateur;
 sem_t sem_libres; //Sémaphores libres
 int journal; //Identifier du journal
 
@@ -54,6 +55,8 @@ int main(int argc, char const *argv[])
   	}
 	
 	init_workers(nb_players); //On crée notre pool de workers qu'on met en attente de connexion ensuite
+
+	init_session(); //On initialise la session, en créant un thread consommateur qui redirige ensuite les données vers tous les clients (lorsque ceux-ci sont connectés)
 
 	listen_socket(port, nb_players);//On écoute le socket entrant pour récupérer les connexions et les affecter aux threads
 
@@ -193,4 +196,13 @@ void listen_socket(int port, int nb_players)
 	    }
 	    printf("server: worker %d chosen\n", ilibre);   
     }
+}
+
+void init_session()
+{
+	int retour = pthread_create(consommateur, NULL, consommation);
+	if (ret !=0)
+	{
+		erreur_IO("pthread_create consommateur");
+	}
 }
